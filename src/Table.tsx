@@ -12,13 +12,13 @@ export interface TableProps {
   data: Data;
 }
 
-export function Table(props: TableProps) {
+export function Table({colDef, data}: TableProps) {
   return (
     <table>
       <thead>
         <tr>
           {
-            props.colDef.map((col) => (
+            colDef.map((col) => (
               <th>{col.header}</th>
             ))
           }
@@ -26,10 +26,10 @@ export function Table(props: TableProps) {
       </thead>
       <tbody>
         {
-          props.data.map((row) => (
+          data.map((row) => (
             <tr>
               {
-                props.colDef.map((col) => (
+                colDef.map((col) => (
                   <td>
                     {row[col.field]}
                   </td>
