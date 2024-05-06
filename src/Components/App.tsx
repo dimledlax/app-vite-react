@@ -12,24 +12,16 @@ function App() {
   const colDefs: ColDef[] = [
     {
       header: "",
+      field: "id",
+    },
+    {
+      header: "",
       field: "avatar",
     },
     {
       header: "",
       field: "name",
     },
-    // {
-    //   header: "Height",
-    //   field: "height",
-    // },
-    // {
-    //   header: "Weight",
-    //   field: "weight",
-    // },
-    // {
-    //   header: "Experience",
-    //   field: "experience",
-    // },
   ];
 
   const POKEMON_URL = "https://pokeapi.co/api/v2/pokemon";
@@ -108,7 +100,9 @@ function App() {
       const pokemon = (await axios.get<PokemonApi>(url)).data;
 
       pokemons.push({
-        avatar: <img src={pokemon.sprites.front_default} className="avatarImg" onClick={()=>console.log("clicked")}></img>,
+        avatar: <img src={pokemon.sprites.front_default} className="avatarImg" onClick={()=> {
+          handlePokemonClick(pokemon)
+        }}></img>,
         name: pokemon.name.toUpperCase(),
         height: pokemon.height,
         weight: pokemon.weight,
@@ -120,6 +114,10 @@ function App() {
     dispatch({ type: "LOAD_FINISH", data: pokemons });
   };
 
+  const handlePokemonClick = (pokemon: any) => {
+    setPickedPokemon(pokemon)
+  }
+
   useEffect(() => {
     if (isMounted.current) {
       load();
@@ -127,6 +125,7 @@ function App() {
       isMounted.current = true;
     }
   }, [state.offset]);
+
 
   return (
     <>
@@ -136,12 +135,12 @@ function App() {
         ) : (
           <Table colDefs={colDefs} data={state.rows}/>
         )}
-        <LoadButton onClick={load}>Load Data</LoadButton>
+        {/* <LoadButton onClick={load}>Load Data</LoadButton> */}
         <NavButtons data={state} dispatch={dispatch} />
       </div>
 
       <div className="rightContent">
-        <Card data={state.rows}/>
+        <Card data={pickedPokemon}/>
       </div>
     </>
   );
