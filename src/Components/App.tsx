@@ -1,18 +1,19 @@
 import "../index.css";
 import { Reducer, useEffect, useReducer, useRef, useState } from "react";
 import { ColDef, Rows, Table } from "./Table";
-import { LoadButton } from "./LoadButton";
 import { Loader } from "./Loader";
 import { Card } from "./Card";
-import { Pokemons, PokemonApi } from "../models";
+import { FinalPokemons, PokemonApi, Pokemon } from "../models";
 import { NavButtons } from "./NavButtons";
 import axios from "axios";
+import { AppDispatch, RootState, decremented, incremented } from "../store";
+import { useDispatch, useSelector } from "react-redux";
 
 function App() {
   const colDefs: ColDef[] = [
     {
       header: "",
-      field: "id",
+      field: "key",
     },
     {
       header: "",
@@ -81,66 +82,97 @@ function App() {
   };
 
   const [state, dispatch] = useReducer(reducer, initialState);
-  const isMounted = useRef(false);
-  const [pickedPokemon, setPickedPokemon] = useState();
+  // const isMounted = useRef(false);
+  const [pickedPokemon, setPickedPokemon] = useState<Pokemon>();
 
   const load = async () => {
     dispatch({ type: "LOAD_START" });
 
-    const urls = await axios.get<Pokemons>(POKEMON_URL, {
+    const urls = await axios.get<FinalPokemons>(POKEMON_URL, {
       params: {
         limit: state.limit,
         offset: state.offset,
       },
     });
 
-    const pokemons: Rows = [];
+    const finalPokemons: Rows = [];
 
     for (const { url } of urls.data.results) {
-      const pokemon = (await axios.get<PokemonApi>(url)).data;
+      const fullPokemon = (await axios.get<PokemonApi>(url)).data;
 
-      pokemons.push({
-        avatar: <img src={pokemon.sprites.front_default} className="avatarImg" onClick={()=> {
-          handlePokemonClick(pokemon)
-        }}></img>,
-        name: pokemon.name.toUpperCase(),
-        height: pokemon.height,
-        weight: pokemon.weight,
-        experience: pokemon.base_experience,
-        id: pokemon.id,
+      const shrinkedPokemon: Pokemon = {
+        avatar: fullPokemon.sprites.front_default,
+        name: fullPokemon.name.toUpperCase(),
+        height: fullPokemon.height,
+        weight: fullPokemon.weight,
+        experience: fullPokemon.base_experience,
+      };
+
+      finalPokemons.push({
+        ...shrinkedPokemon,
+        avatar: (
+          <img
+            src={shrinkedPokemon.avatar}
+            className="avatarImg"
+            onClick={() => {
+              handlePokemonClick(shrinkedPokemon);
+            }}
+          ></img>
+        ),
+        key: fullPokemon.id,
       });
     }
 
-    dispatch({ type: "LOAD_FINISH", data: pokemons });
+    dispatch({ type: "LOAD_FINISH", data: finalPokemons });
   };
 
-  const handlePokemonClick = (pokemon: any) => {
-    setPickedPokemon(pokemon)
-  }
+  const handlePokemonClick = (pokemon: Pokemon) => {
+    setPickedPokemon(pokemon);
+  };
 
   useEffect(() => {
-    if (isMounted.current) {
+    // if (isMounted.current) {
       load();
-    } else {
-      isMounted.current = true;
-    }
+    // } else {
+    //   isMounted.current = true;
+    // }
   }, [state.offset]);
 
+  // console.log("render")
+
+  const count = useSelector((state: RootState) => state.value)
+  const reduxDispatch = useDispatch<AppDispatch>();
 
   return (
     <>
+      {/* <h1>Counter - {count}</h1> */}
+      {/* <button onClick={() => reduxDispatch(incremented())}>increment</button>
+      <button onClick={() => reduxDispatch(decremented())}>decrement</button> */}
       <div className="leftContent">
         {state.status === "loading" ? (
           <Loader />
         ) : (
-          <Table colDefs={colDefs} data={state.rows}/>
+          <Table colDefs={colDefs} data={state.rows} />
         )}
-        {/* <LoadButton onClick={load}>Load Data</LoadButton> */}
-        <NavButtons data={state} dispatch={dispatch} />
+        <NavButtons
+          prevClick={() => {
+            state.offset >= 5 &&
+              dispatch({
+                type: "SET_PARAMS",
+                params: { offset: state.offset - state.limit },
+              });
+          }}
+          nextClick={() => {
+            dispatch({
+              type: "SET_PARAMS",
+              params: { offset: state.offset + state.limit },
+            });
+          }}
+        />
       </div>
 
       <div className="rightContent">
-        <Card data={pickedPokemon}/>
+        <Card pokemon={pickedPokemon} />
       </div>
     </>
   );

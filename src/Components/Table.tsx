@@ -1,11 +1,11 @@
-import { ReactNode } from "react";
+import { Key, ReactNode } from "react";
 
 export interface ColDef {
   header: string;
   field: string;
 }
 
-export type Rows = Record<string, ReactNode>[]
+export type Rows = Array<Record<string, ReactNode> & { key: Key | null | undefined}>
 
 export interface TableProps {
   colDefs: ColDef[];
@@ -19,7 +19,7 @@ export function Table({colDefs, data}: TableProps) {
         <tr>
           {
             colDefs.map((col) => (
-              <th key={col.header}>{col.header}</th>
+              <th key={col.field}>{col.header}</th>
             ))
           }
         </tr>
@@ -27,7 +27,7 @@ export function Table({colDefs, data}: TableProps) {
       <tbody>
         {
           data.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.key}>
               {
                 colDefs.map((col) => (
                   <td key={col.field}>

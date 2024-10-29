@@ -17,13 +17,14 @@ export interface GetPokemonListRequest {
 }
 
 export interface Pokemon {
+  avatar: string;
   name: string;
-  height: string;
-  weight: string;
-  experience: string;
+  height: number;
+  weight: number;
+  experience: number;
 }
 
-export interface Pokemons {
+export interface FinalPokemons {
   count: number;
   next: string;
   previous: null | string;
