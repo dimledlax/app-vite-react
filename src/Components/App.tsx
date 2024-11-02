@@ -36,7 +36,7 @@ function App() {
     rows: [],
     status: "none",
     offset: 0,
-    limit: 7,
+    limit: 5,
   };
 
   const reducer: Reducer<
